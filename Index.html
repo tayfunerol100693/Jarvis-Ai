@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JARVIS AI</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#030b16;color:#bceeff;
+ font-family:Arial,sans-serif;text-align:center;
+}
+header{
+ padding:22px;border-bottom:1px solid #087eaa;
+ letter-spacing:5px;color:#00d9ff;font-size:26px;
+}
+.status{font-size:12px;color:#65ffa9;margin-top:10px}
+.reactor{
+ width:220px;height:220px;border-radius:50%;
+ margin:35px auto;display:grid;place-items:center;
+ border:3px solid #00d9ff;
+ box-shadow:0 0 35px #0077ff, inset 0 0 40px #005a9c;
+ animation:pulse 3s infinite;
+}
+.core{
+ width:155px;height:155px;border-radius:50%;
+ border:2px dashed #83eeff;
+ display:grid;place-items:center;
+ font-size:22px;font-weight:bold;color:white;
+ text-shadow:0 0 20px #00d9ff;
+}
+@keyframes pulse{
+ 50%{box-shadow:0 0 60px #00d9ff,inset 0 0 60px #0077ff}
+}
+button{
+ background:#06253d;color:#c4f6ff;
+ border:1px solid #00bfff;border-radius:10px;
+ padding:14px;margin:5px;cursor:pointer;font-size:14px;
+}
+button:active{background:#087eaa}
+.panel{
+ background:#071827;border:1px solid #125779;
+ border-radius:14px;margin:15px auto;padding:16px;
+ width:92%;max-width:600px;text-align:left;
+}
+h3{color:#00d9ff;margin-top:0}
+#chat{
+ height:180px;overflow-y:auto;
+ font-size:14px;line-height:1.6;
+}
+input{
+ background:#020d19;border:1px solid #16789b;
+ color:white;border-radius:8px;padding:13px;
+ width:70%;font-size:15px;
+}
+small{color:#8ca8b8}
+.warning{color:#ffca75}
+</style>
+</head>
+<body>
+
+<header>
+J.A.R.V.I.S.
+<div class="status" id="status">SYSTEM ONLINE · DEMOMODUS</div>
+</header>
+
+<div class="reactor">
+ <div class="core">JARVIS<br>AI</div>
+</div>
+
+<button onclick="listen()">🎙️ Mit JARVIS sprechen</button>
+<button onclick="speak('JARVIS ist bereit.')">🔊 Test</button>
+
+<div class="panel">
+<h3>KI-KOMMUNIKATION</h3>
+<div id="chat">
+<div>JARVIS: Willkommen zurück. Systeme bereit.</div>
+</div>
+<div style="margin-top:12px">
+<input id="message" placeholder="Befehl eingeben...">
+<button onclick="send()">Senden</button>
+</div>
+</div>
+
+<div class="panel">
+<h3>TRADING CENTER</h3>
+<p>Plattform: MetaTrader 5</p>
+<p>Verbindung: <span class="warning">NICHT VERBUNDEN</span></p>
+<p>Modus: Simulation / Vorbereitung</p>
+<p>Automatisches Trading: DEAKTIVIERT</p>
+<button onclick="analyze()">📊 Analyse testen</button>
+<button onclick="tradingStatus()">🤖 Trading-Status</button>
+</div>
+
+<div class="panel">
+<h3>JARVIS SYSTEM</h3>
+<p>✓ Benutzeroberfläche aktiv</p>
+<p>✓ Lokale Befehle aktiv</p>
+<p>○ OpenAI Backend noch verbinden</p>
+<p>○ Live-Marktdaten noch verbinden</p>
+<p>○ MetaTrader 5 noch verbinden</p>
+<small>Keine echten Trades oder KI-Analysen aktiv.</small>
+</div>
+
+<script>
+const chat=document.getElementById("chat");
+const statusEl=document.getElementById("status");
+
+function log(who,text){
+ const line=document.createElement("div");
+ line.textContent=who+": "+text;
+ chat.appendChild(line);
+ chat.scrollTop=chat.scrollHeight;
+}
+
+function speak(text){
+ if(!("speechSynthesis" in window)){
+  log("SYSTEM","Sprachausgabe nicht verfügbar.");
+  return;
+ }
+ speechSynthesis.cancel();
+ const voice=new SpeechSynthesisUtterance(text);
+ voice.lang="de-DE";
+ voice.rate=1;
+ speechSynthesis.speak(voice);
+}
+
+function respond(text){
+ log("JARVIS",text);
+ speak(text);
+}
+
+function processCommand(text){
+ const cmd=text.toLowerCase();
+ if(cmd.includes("trade") || cmd.includes("trading")){
+  tradingStatus();
+ }else if(cmd.includes("analys")){
+  analyze();
+ }else if(cmd.includes("hallo")){
+  respond("Hallo. JARVIS ist bereit.");
+ }else{
+  respond("Befehl empfangen. Die KI-Verbindung wird noch eingerichtet.");
+ }
+}
+
+function send(){
+ const input=document.getElementById("message");
+ const text=input.value.trim();
+ if(!text)return;
+ log("DU",text);
+ input.value="";
+ processCommand(text);
+}
+
+document.getElementById("message")
+ .addEventListener("keydown",e=>{
+  if(e.key==="Enter")send();
+ });
+
+function tradingStatus(){
+ respond("Trading-System vorbereitet. MetaTrader 5 ist noch nicht verbunden. Es werden keine Orders ausgeführt.");
+}
+
+function analyze(){
+ respond("Analyse-Demomodus. Live-Marktdaten und die KI-Analyse müssen noch angebunden werden.");
+}
+
+function listen(){
+ const Recognition=window.SpeechRecognition||
+                     window.webkitSpeechRecognition;
+ if(!Recognition){
+  respond("Spracherkennung ist in diesem Browser nicht verfügbar. Bitte verwende die Texteingabe.");
+  return;
+ }
+ const recognition=new Recognition();
+ recognition.lang="de-DE";
+ recognition.interimResults=false;
+ recognition.onstart=()=>{
+  statusEl.textContent="MIKROFON AKTIV";
+ };
+ recognition.onresult=e=>{
+  const text=e.results[0][0].transcript;
+  log("DU",text);
+  processCommand(text);
+ };
+ recognition.onerror=e=>{
+  log("SYSTEM","Mikrofonfehler: "+e.error);
+ };
+ recognition.onend=()=>{
+  statusEl.textContent="SYSTEM ONLINE · DEMOMODUS";
+ };
+ recognition.start();
+}
+</script>
+</body>
+</html>
