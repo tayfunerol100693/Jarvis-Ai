@@ -145,10 +145,13 @@ function respond(text){
   }
 
   try {
+   const angemeldet = await jarvisLogin();
+if (!angemeldet) return;
     const response = await fetch(
       "https://jarvis-ai-m5oc.onrender.com/chat",
       {
-        method: "POST",
+      credentials: "include", 
+       method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
@@ -215,6 +218,35 @@ function listen(){
   statusEl.textContent="SYSTEM ONLINE · DEMOMODUS";
  };
  recognition.start();
+}
+async function jarvisLogin() {
+  const password = prompt("JARVIS Passwort eingeben:");
+  if (password === null) return false;
+
+  try {
+    const response = await fetch(
+      "https://jarvis-ai-m5oc.onrender.com/login",
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ password })
+      }
+    );
+
+    if (!response.ok) {
+      alert("Anmeldung fehlgeschlagen.");
+      return false;
+    }
+
+    alert("JARVIS Anmeldung erfolgreich!");
+    return true;
+  } catch (error) {
+    alert("Verbindung zum Server fehlgeschlagen.");
+    return false;
+  }
 }
 </script>
 </body>
